@@ -7,13 +7,18 @@ function get(id) {
   if (id) {
     query.where({ id }).first();
 
-    const promises = [query, this.getProjectTasks(id)];
+    const promises = [
+      query,
+      this.getProjectTasksShort(id),
+      this.getProjectResources(id)
+    ];
 
     return Promise.all(promises).then(function(results) {
-      let [project, tasks] = results;
+      let [project, tasks, resources] = results;
 
       if (project) {
         project.tasks = tasks;
+        project.resources = resources;
 
         return mappers.projectToBody(project);
       } else {
@@ -49,6 +54,23 @@ function getProjectTasks(projectId) {
     .then(tasks => tasks.map(task => mappers.taskToBody(task)));
 }
 
+function getProjectTasksShort(projectId) {
+  return db("tasks as t")
+    .join("projects as p", "t.project_id", "p.id")
+    .where({ project_id: projectId })
+    .select("t.id", "t.description", "t.notes", "t.is_completed")
+    .then(tasks => tasks.map(task => mappers.taskToBody(task)));
+}
+
+function getProjectResources(projectId) {
+  return db("resources as r")
+    .join("projects_resources as pr", "pr.resource_id", "r.id")
+    .join("projects as p", "pr.project_id", "p.id")
+    .where({ project_id: projectId })
+    .select("r.id", "r.name", "r.description", "r.description")
+    .then(tasks => tasks.map(task => mappers.taskToBody(task)));
+}
+
 async function addProjectTask(projectId, task) {
   const [id] = await db("tasks").insert(task);
   return db("tasks")
@@ -60,5 +82,7 @@ module.exports = {
   get,
   add,
   getProjectTasks,
+  getProjectTasksShort,
+  getProjectResources,
   addProjectTask
 };
