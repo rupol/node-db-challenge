@@ -44,12 +44,13 @@ exports.up = async function(knex) {
       .onDelete("CASCADE")
       .onUpdate("CASCADE");
     table
-      .integer("recource_id")
+      .integer("resource_id")
       .notNullable()
       .references("id")
       .inTable("resources")
       .onDelete("CASCADE")
       .onUpdate("CASCADE");
+    table.primary(["project_id", "resource_id"]);
   });
 };
 
