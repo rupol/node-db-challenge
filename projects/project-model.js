@@ -51,7 +51,7 @@ function getProjectTasks(projectId) {
 
 async function addProjectTask(projectId, task) {
   const [id] = await db("tasks").insert(task);
-  return db("projects")
+  return db("tasks")
     .where({ id })
     .first();
 }
